@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "moduleResolution": "node",
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "incremental": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+      "@brewmaster/shared-types": ["packages/shared-types/src"],
+      "@brewmaster/shared-utils": ["packages/shared-utils/src"],
+      "@brewmaster/ai-agents": ["packages/ai-agents/src"],
+      "@brewmaster/database": ["packages/database/src"],
+      "@brewmaster/api-client": ["packages/api-client/src"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "build"]
+}

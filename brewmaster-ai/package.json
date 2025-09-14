@@ -1,0 +1,46 @@
+{
+  "name": "brewmaster-ai",
+  "version": "1.0.0",
+  "description": "AI-powered brewery and restaurant management system",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:gateway\" \"npm run dev:dashboard\" \"npm run dev:services\"",
+    "dev:gateway": "cd apps/api-gateway && npm run dev",
+    "dev:dashboard": "cd apps/web-dashboard && npm run dev",
+    "dev:services": "concurrently \"cd services/agent-orchestrator && npm run dev\" \"cd services/production-service && npm run dev\" \"cd services/inventory-service && npm run dev\"",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "eslint . --ext .ts,.tsx",
+    "start:dev": "./infrastructure/scripts/dev-start.sh",
+    "stop:dev": "./infrastructure/scripts/dev-stop.sh",
+    "start:local": "docker-compose -f infrastructure/docker/docker-compose.dev.yml up -d",
+    "stop:local": "docker-compose -f infrastructure/docker/docker-compose.dev.yml down",
+    "logs": "docker-compose -f infrastructure/docker/docker-compose.dev.yml logs -f",
+    "db:migrate": "cd packages/database && npm run migrate",
+    "db:generate": "cd packages/database && npm run generate",
+    "db:seed": "cd packages/database && npm run seed",
+    "db:reset": "cd packages/database && npx prisma migrate reset --force",
+    "postinstall": "npm run build --workspace=packages/shared-types && npm run build --workspace=packages/shared-utils"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "ajv": "^8.12.0",
+    "ajv-keywords": "^5.1.0",
+    "concurrently": "^8.0.0",
+    "eslint": "^8.0.0",
+    "nodemon": "^3.0.0",
+    "prettier": "^3.0.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0"
+  }
+}

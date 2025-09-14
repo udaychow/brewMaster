@@ -1,0 +1,23 @@
+{
+  "name": "@brewmaster/ai-agents",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0",
+    "openai": "^4.0.0",
+    "langchain": "^0.2.0",
+    "@brewmaster/shared-types": "*",
+    "@brewmaster/shared-utils": "*"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  }
+}

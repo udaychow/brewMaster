@@ -1,0 +1,346 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User and Authentication
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  password        String
+  firstName       String
+  lastName        String
+  role            UserRole         @default(STAFF)
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  batches         Batch[]
+  qualityChecks   QualityCheck[]
+  orders          Order[]
+  reservations    Reservation[]
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  BREWER
+  STAFF
+  CUSTOMER
+}
+
+// Brewing and Production
+model Recipe {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  style           String
+  description     String?
+  targetVolume    Float
+  targetABV       Float
+  targetIBU       Float
+  grainBill       Json
+  hopSchedule     Json
+  yeastStrain     String
+  fermentationTemp Float
+  estimatedDays   Int
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  batches         Batch[]
+}
+
+model Batch {
+  id              String           @id @default(uuid())
+  batchNumber     String           @unique
+  recipe          Recipe           @relation(fields: [recipeId], references: [id])
+  recipeId        String
+  brewer          User             @relation(fields: [brewerId], references: [id])
+  brewerId        String
+  status          BatchStatus      @default(PLANNED)
+  plannedDate     DateTime
+  brewDate        DateTime?
+  volume          Float
+  originalGravity Float?
+  finalGravity    Float?
+  abv             Float?
+  ibu             Float?
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  fermentationLogs FermentationLog[]
+  qualityChecks   QualityCheck[]
+  inventoryUsage  InventoryUsage[]
+}
+
+enum BatchStatus {
+  PLANNED
+  BREWING
+  FERMENTING
+  CONDITIONING
+  PACKAGING
+  COMPLETED
+  CANCELLED
+}
+
+model FermentationLog {
+  id              String           @id @default(uuid())
+  batch           Batch            @relation(fields: [batchId], references: [id])
+  batchId         String
+  timestamp       DateTime         @default(now())
+  temperature     Float
+  gravity         Float?
+  pH              Float?
+  notes           String?
+}
+
+model QualityCheck {
+  id              String           @id @default(uuid())
+  batch           Batch            @relation(fields: [batchId], references: [id])
+  batchId         String
+  inspector       User             @relation(fields: [inspectorId], references: [id])
+  inspectorId     String
+  checkType       String
+  passed          Boolean
+  parameters      Json
+  notes           String?
+  timestamp       DateTime         @default(now())
+}
+
+// Inventory Management
+model Ingredient {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  category        IngredientCategory
+  unit            String
+  currentStock    Float            @default(0)
+  minimumStock    Float
+  reorderPoint    Float
+  costPerUnit     Float
+  supplier        Supplier?        @relation(fields: [supplierId], references: [id])
+  supplierId      String?
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  inventoryUsage  InventoryUsage[]
+  orderItems      OrderItem[]
+}
+
+enum IngredientCategory {
+  GRAIN
+  HOPS
+  YEAST
+  ADJUNCT
+  CHEMICAL
+  PACKAGING
+  OTHER
+}
+
+model Supplier {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  contactName     String?
+  email           String?
+  phone           String?
+  address         String?
+  leadTime        Int              // in days
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  ingredients     Ingredient[]
+  orders          Order[]
+}
+
+model InventoryUsage {
+  id              String           @id @default(uuid())
+  batch           Batch            @relation(fields: [batchId], references: [id])
+  batchId         String
+  ingredient      Ingredient       @relation(fields: [ingredientId], references: [id])
+  ingredientId    String
+  quantity        Float
+  usedAt          DateTime         @default(now())
+}
+
+model Order {
+  id              String           @id @default(uuid())
+  orderNumber     String           @unique
+  supplier        Supplier         @relation(fields: [supplierId], references: [id])
+  supplierId      String
+  orderedBy       User             @relation(fields: [orderedById], references: [id])
+  orderedById     String
+  status          OrderStatus      @default(PENDING)
+  totalAmount     Float
+  orderDate       DateTime         @default(now())
+  expectedDate    DateTime?
+  receivedDate    DateTime?
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  items           OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model OrderItem {
+  id              String           @id @default(uuid())
+  order           Order            @relation(fields: [orderId], references: [id])
+  orderId         String
+  ingredient      Ingredient       @relation(fields: [ingredientId], references: [id])
+  ingredientId    String
+  quantity        Float
+  unitPrice       Float
+  totalPrice      Float
+}
+
+// Customer Management
+model Customer {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  firstName       String
+  lastName        String
+  phone           String?
+  dateOfBirth     DateTime?
+  loyaltyPoints   Int              @default(0)
+  memberSince     DateTime         @default(now())
+  preferences     Json?
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  reservations    Reservation[]
+  visits          Visit[]
+}
+
+model Reservation {
+  id              String           @id @default(uuid())
+  customer        Customer         @relation(fields: [customerId], references: [id])
+  customerId      String
+  createdBy       User             @relation(fields: [createdById], references: [id])
+  createdById     String
+  date            DateTime
+  partySize       Int
+  status          ReservationStatus @default(PENDING)
+  specialRequests String?
+  tableNumber     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  SEATED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model Visit {
+  id              String           @id @default(uuid())
+  customer        Customer         @relation(fields: [customerId], references: [id])
+  customerId      String
+  visitDate       DateTime         @default(now())
+  totalSpent      Float
+  itemsPurchased  Json
+  feedback        String?
+  rating          Int?
+}
+
+// Compliance and Licensing
+model License {
+  id              String           @id @default(uuid())
+  licenseNumber   String           @unique
+  type            LicenseType
+  issuingAuthority String
+  issueDate       DateTime
+  expiryDate      DateTime
+  status          LicenseStatus    @default(ACTIVE)
+  documents       Json?
+  renewalReminder DateTime?
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+enum LicenseType {
+  BREWERY_LICENSE
+  LIQUOR_LICENSE
+  HEALTH_PERMIT
+  BUSINESS_LICENSE
+  FDA_REGISTRATION
+  TTB_PERMIT
+  OTHER
+}
+
+enum LicenseStatus {
+  ACTIVE
+  PENDING_RENEWAL
+  EXPIRED
+  SUSPENDED
+  REVOKED
+}
+
+// Financial Management
+model Transaction {
+  id              String           @id @default(uuid())
+  transactionNumber String         @unique
+  type            TransactionType
+  category        String
+  amount          Float
+  date            DateTime
+  description     String?
+  paymentMethod   String?
+  referenceId     String?         // Can reference Order, Batch, etc.
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  ADJUSTMENT
+}
+
+// AI Agent Tasks
+model AITask {
+  id              String           @id @default(uuid())
+  agentType       String
+  taskType        String
+  status          AITaskStatus     @default(PENDING)
+  priority        Int              @default(5)
+  input           Json
+  output          Json?
+  error           String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+enum AITaskStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Sensor Data (for IoT integration)
+model SensorReading {
+  id              String           @id @default(uuid())
+  sensorId        String
+  sensorType      String
+  location        String
+  value           Float
+  unit            String
+  timestamp       DateTime         @default(now())
+  
+  @@index([sensorId, timestamp])
+}
