@@ -4,14 +4,13 @@
   "description": "AI-powered brewery and restaurant management system",
   "private": true,
   "workspaces": [
-    "apps/*",
+    "apps/api-gateway",
     "services/*",
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev:gateway\" \"npm run dev:dashboard\" \"npm run dev:services\"",
+    "dev": "concurrently \"npm run dev:gateway\" \"npm run dev:services\"",
     "dev:gateway": "cd apps/api-gateway && npm run dev",
-    "dev:dashboard": "cd apps/web-dashboard && npm run dev",
     "dev:services": "concurrently \"cd services/agent-orchestrator && npm run dev\" \"cd services/production-service && npm run dev\" \"cd services/inventory-service && npm run dev\"",
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",

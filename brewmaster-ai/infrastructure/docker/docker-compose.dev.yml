@@ -110,21 +110,22 @@ services:
       - /app/node_modules
     command: npm run dev --workspace=apps/api-gateway
 
-  web-dashboard:
-    build:
-      context: .
-      dockerfile: infrastructure/docker/Dockerfile.web-dashboard
-      target: builder
-    ports:
-      - "3001:3000"
-    environment:
-      - REACT_APP_API_URL=http://localhost:3000
-      - CHOKIDAR_USEPOLLING=true
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/apps/web-dashboard/node_modules
-    command: npm run dev --workspace=apps/web-dashboard
+  # web-dashboard has been moved to separate brewmaster-ui folder
+  # web-dashboard:
+  #   build:
+  #     context: .
+  #     dockerfile: infrastructure/docker/Dockerfile.web-dashboard
+  #     target: builder
+  #   ports:
+  #     - "3001:3000"
+  #   environment:
+  #     - REACT_APP_API_URL=http://localhost:3000
+  #     - CHOKIDAR_USEPOLLING=true
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #     - /app/apps/web-dashboard/node_modules
+  #   command: npm run dev --workspace=apps/web-dashboard
 
   production-service:
     build:
